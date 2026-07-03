@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CIP Checklist</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+:root{
+  --bg:#f0f4f8;
+  --surface:#fff;
+  --surface2:#e8eef5;
+  --surface3:#dde6f0;
+  --border:#c5d3e0;
+  --accent:#1a56a0;
+  --accent-l:#2d72c8;
+  --accent-bg:#e8f0fb;
+  --text:#1a2535;
+  --text2:#5a7090;
+  --text3:#8aa0b8;
+  --red:#c0392b;
+  --green:#1a7a4a;
+  --green-bg:#e6f4ed;
+  --al:#1a56a0;
+  --al-bg:#e8f0fb;
+  --al-b:#7aaee8;
+  --ac:#c0770a;
+  --ac-bg:#fef3e2;
+  --ac-b:#f5c26b;
+  --sh:0 1px 4px rgba(26,60,100,.10);
+  --sh-md:0 4px 16px rgba(26,60,100,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',sans-serif;min-height:100vh;padding-bottom:32px;}
+
+/* NAV */
+.nav{display:flex;background:var(--accent);padding:0 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(26,60,100,.25);}
+.nav-btn{padding:14px 16px;color:rgba(255,255,255,.65);font-family:'IBM Plex Sans Thai',sans-serif;font-size:13px;font-weight:600;border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.nav-btn:hover{color:#fff;}
+.nav-btn.active{color:#fff;border-bottom-color:#6ee7b7;}
+
+/* PAGE */
+.page{display:none;padding:14px;}
+.page.active{display:block;}
+
+/* HEADER */
+.header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--accent);border-radius:14px;margin-bottom:12px;box-shadow:var(--sh-md);}
+.header-icon{width:42px;height:42px;background:rgba(255,255,255,.18);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.header h1{font-size:18px;font-weight:700;color:#fff;}
+.header p{font-size:11px;color:rgba(255,255,255,.65);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+
+/* CLOCK BAR */
+.ts-bar{background:var(--accent);border-radius:10px;padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#fff;box-shadow:var(--sh);}
+.ts-dot{width:8px;height:8px;background:#6ee7b7;border-radius:50%;animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+
+/* SECTION */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh);}
+.sec-hd{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;}
+.sec-num{width:22px;height:22px;background:var(--accent);color:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;flex-shrink:0;}
+.sec-body{padding:12px;}
+
+/* FLAVOR INPUT */
+.flavor-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'IBM Plex Sans Thai',sans-serif;font-size:14px;outline:none;transition:border-color .2s;resize:none;}
+.flavor-input:focus{border-color:var(--accent-l);background:#fff;}
+.flavor-input::placeholder{color:var(--text3);}
+
+/* CIP TYPE */
+.cip-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.cip-btn{padding:12px 8px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text2);font-family:'IBM Plex Sans Thai',sans-serif;font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;line-height:1.5;}
+.cip-btn:hover{border-color:var(--accent-l);color:var(--accent);background:var(--accent-bg);}
+.cip-btn.al.active{border-color:var(--al);background:var(--al-bg);color:var(--al);font-weight:700;}
+.cip-btn.ac.active{border-color:var(--ac);background:var(--ac-bg);color:var(--ac);font-weight:700;}
+.cip-btn.alac.active{border-color:var(--green);background:var(--green-bg);color:var(--green);font-weight:700;}
+
+/* PHOTO SLOTS */
+.photo-slots{display:flex;flex-direction:column;gap:14px;}
+.photo-slot-label{font-size:13px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px;font-weight:600;}
+.step-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:700;}
+.step-badge.al{background:var(--al-bg);color:var(--al);border:1px solid var(--al-b);}
+.step-badge.ac{background:var(--ac-bg);color:var(--ac);border:1px solid var(--ac-b);}
+.step-badge.sc{background:var(--green-bg);color:var(--green);border:1px solid #6bc99a;}
+
+.photo-area{border:2px dashed var(--border);border-radius:12px;min-height:200px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--surface2);}
+.photo-area:hover,.photo-area:active{border-color:var(--accent-l);background:var(--accent-bg);}
+.photo-area.has-photo{border-style:solid;border-color:var(--accent-l);background:#000;}
+.photo-area img{width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;border-radius:10px;}
+.photo-placeholder{text-align:center;color:var(--text3);pointer-events:none;padding:20px;}
+.photo-placeholder .ph-icon{font-size:40px;margin-bottom:8px;}
+.photo-placeholder .ph-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.photo-placeholder .ph-sub{font-size:11px;color:var(--text3);}
+.photo-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:10px 12px;font-size:11px;color:#6ee7b7;font-family:'IBM Plex Mono',monospace;display:none;border-radius:0 0 10px 10px;}
+.photo-area.has-photo .photo-overlay{display:block;}
+.retake-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-size:11px;padding:4px 10px;cursor:pointer;display:none;font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.photo-area.has-photo .retake-btn{display:block;}
+input[type="file"]{display:none;}
+
+.done-badge{display:none;margin-top:6px;padding:7px 12px;background:var(--green-bg);border:1px solid #6bc99a;border-radius:7px;font-size:12px;color:var(--green);font-family:'IBM Plex Mono',monospace;}
+.done-badge.show{display:block;}
+
+/* SUBMIT */
+.submit-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:'IBM Plex Sans Thai',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(26,86,160,.3);}
+.submit-btn:hover{background:var(--accent-l);transform:translateY(-1px);}
+.submit-btn:disabled{background:var(--surface3);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#fff;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;transition:transform .3s ease;z-index:999;white-space:nowrap;box-shadow:var(--sh-md);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:16px;}
+.modal-input{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-family:'IBM Plex Mono',monospace;outline:none;text-align:center;letter-spacing:8px;}
+.modal-input:focus{border-color:var(--accent-l);}
+.modal-err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+.modal-btns{display:flex;gap:8px;margin-top:16px;}
+.modal-confirm{flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+.modal-cancel{padding:11px 18px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;}
+
+/* HISTORY PAGE */
+.hist-header{background:var(--accent);border-radius:14px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh-md);}
+.hist-header h2{color:#fff;font-size:17px;font-weight:700;}
+.hist-header p{color:rgba(255,255,255,.65);font-size:11px;margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+.export-btn{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.export-btn:hover{background:rgba(255,255,255,.28);}
+
+.no-data{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;}
+.no-data .icon{font-size:36px;margin-bottom:10px;}
+
+/* RECORD CARDS */
+.rec-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh);transition:border-color .15s;}
+.rec-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(26,86,160,.2);}
+.rec-card-hd{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.rec-card-hd-left{display:flex;align-items:center;gap:8px;min-width:0;}
+.rec-checkbox{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.rec-ts{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2);}
+.rec-flavor{font-size:12px;color:var(--text2);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-card-hd-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.type-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.type-badge.al{background:var(--al-bg);color:var(--al);border:1px solid var(--al-b);}
+.type-badge.alac{background:var(--green-bg);color:var(--green);border:1px solid #6bc99a;}
+.del-one-btn{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap;}
+.del-one-btn:hover{background:#fee2e2;}
+.rec-photos{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;}
+.rec-photo-item{border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:opacity .15s;}
+.rec-photo-item:hover{opacity:.85;}
+.rec-photo-item img{width:100%;height:140px;object-fit:cover;display:block;}
+.rec-photo-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);padding:4px 6px;background:var(--surface2);text-align:center;}
+.rec-card-3{grid-template-columns:1fr 1fr 1fr;}
+
+/* BULK DELETE BAR */
+.bulk-bar{display:none;position:sticky;bottom:16px;z-index:200;margin:10px 0 0;background:var(--red);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 16px rgba(192,57,43,.35);}
+.bulk-bar.hidden{display:none!important;}
+.bulk-bar-info{color:#fff;font-size:13px;font-weight:600;}
+.bulk-del-btn{background:#fff;color:var(--red);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+.bulk-cancel-btn{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;}
+
+/* SELECT ALL ROW */
+.sel-all-row{display:flex;align-items:center;gap:8px;padding:8px 4px;margin-bottom:4px;font-size:13px;color:var(--text2);}
+.sel-all-row input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:16px;}
+.lightbox.show{display:flex;}
+.lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.5);}
+.lightbox-lbl{color:rgba(255,255,255,.7);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* CONFIRM DELETE MODAL */
+.confirm-box{background:#fff;border-radius:16px;padding:24px 20px;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.confirm-title{font-size:16px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;color:var(--red);}
+.confirm-sub{font-size:13px;color:var(--text2);margin-bottom:18px;}
+.confirm-btns{display:flex;gap:8px;}
+.confirm-del{flex:1;padding:11px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+.confirm-cancel{padding:11px 18px;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('record',this)">📋 บันทึก CIP</button>
+  <button class="nav-btn" onclick="tryShowHistory(this)">🗂 ประวัติ</button>
+</div>
+
+<!-- ========== RECORD PAGE ========== -->
+<div class="page active" id="page-record">
+
+  <div class="header">
+    <div class="header-icon">🧪</div>
+    <div>
+      <h1>CIP Checklist</h1>
+      <p>บันทึกการทำความสะอาดระบบ</p>
+    </div>
+  </div>
+
+  <div class="ts-bar">
+    <div class="ts-dot"></div>
+    <span id="live-clock">--</span>
+    <span style="color:rgba(255,255,255,.45);margin-left:auto;font-size:11px;">LIVE</span>
+  </div>
+
+  <!-- 1: รสชาติก่อน CIP -->
+  <div class="section">
+    <div class="sec-hd"><div class="sec-num">1</div>รสชาติ / ผลิตภัณฑ์ก่อน CIP</div>
+    <div class="sec-body">
+      <textarea class="flavor-input" id="flavor" rows="2"
+        placeholder="ระบุรสชาติหรือผลิตภัณฑ์ก่อน CIP เช่น Orange Juice, Strawberry Milk ..."
+        oninput="checkReady()"></textarea>
+    </div>
+  </div>
+
+  <!-- 2: ประเภท CIP -->
+  <div class="section">
+    <div class="sec-hd"><div class="sec-num">2</div>ประเภทการ CIP</div>
+    <div class="sec-body">
+      <div class="cip-grid">
+        <button class="cip-btn al" onclick="setCIPType('AL',this)">
+          🔵 AL<br><small style="font-weight:400;font-size:12px;">Alkali only</small>
+        </button>
+        <button class="cip-btn ac" onclick="setCIPType('AC',this)">
+          🟡 AC<br><small style="font-weight:400;font-size:12px;">Acid only</small>
+        </button>
+        <button class="cip-btn alac" onclick="setCIPType('AL+AC',this)">
+          🟢 AL+AC<br><small style="font-weight:400;font-size:12px;">Alkali + Acid</small>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: ถ่ายรูป (แสดงเมื่อเลือก type แล้ว) -->
+  <div class="section" id="photo-section" style="display:none">
+    <div class="sec-hd"><div class="sec-num">3</div><span id="photo-section-title">ถ่ายรูปบันทึก CIP</span></div>
+    <div class="sec-body">
+      <div class="photo-slots" id="photo-slots"></div>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitForm()" disabled>
+    ⏺ บันทึก CIP
+  </button>
+
+</div><!-- end record -->
+
+<!-- ========== HISTORY PAGE ========== -->
+<div class="page" id="page-history">
+  <div class="hist-header">
+    <div>
+      <h2>🗂 ประวัติการ CIP</h2>
+      <p id="hist-subtitle">—</p>
+    </div>
+    <button class="export-btn" onclick="exportExcel()">⬇ Export</button>
+  </div>
+
+  <div id="hist-no-data" class="no-data" style="display:none">
+    <div class="icon">📭</div>
+    <div>ยังไม่มีข้อมูล</div>
+  </div>
+
+  <div id="hist-controls" style="display:none">
+    <div class="sel-all-row">
+      <input type="checkbox" id="sel-all-cb" onchange="toggleSelectAll(this.checked)">
+      <label for="sel-all-cb" style="cursor:pointer;">เลือกทั้งหมด</label>
+    </div>
+  </div>
+
+  <div id="hist-list"></div>
+
+  <!-- Bulk delete bar -->
+  <div class="bulk-bar hidden" id="bulk-bar">
+    <span class="bulk-bar-info" id="bulk-bar-info">เลือก 0 รายการ</span>
+    <div style="display:flex;gap:6px;">
+      <button class="bulk-cancel-btn" onclick="clearSelection()">ยกเลิก</button>
+      <button class="bulk-del-btn" onclick="confirmBulkDelete()">🗑 ลบที่เลือก</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="">
+  <div class="lightbox-lbl" id="lightbox-lbl"></div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-title">🗑 ยืนยันการลบ</div>
+    <div class="confirm-sub" id="confirm-sub">ต้องการลบรายการนี้ใช่หรือไม่?</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirmModal()">ยกเลิก</button>
+      <button class="confirm-del" onclick="doDelete()">ลบเลย</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal-box">
+    <div class="modal-title">🔒 ใส่รหัสผ่าน</div>
+    <div class="modal-sub">กรอกรหัสผ่านเพื่อดูข้อมูลย้อนหลัง</div>
+    <input class="modal-input" type="password" id="pw-input" maxlength="10" inputmode="numeric"
+      onkeydown="if(event.key==='Enter')checkPW()" autofocus>
+    <div class="modal-err" id="pw-err">รหัสผ่านไม่ถูกต้อง</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closePWModal()">ยกเลิก</button>
+      <button class="modal-confirm" onclick="checkPW()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let cipType = null;
+let photos = {}; // key: slotId, val: {dataUrl, ts}
+let records = [];
+const STORAGE_KEY = 'cip_v3_records';
+const PASSWORD = '3179';
+let histNavBtn = null;
+
+// ===== STORAGE =====
+async function loadRecords(){
+  try {
+    const res = await window.storage.get(STORAGE_KEY);
+    records = res ? JSON.parse(res.value) : [];
+  } catch(e) {
+    records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  }
+}
+
+async function saveRecords(){
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(records));
+  } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); } catch(e) {}
+}
+
+loadRecords();
+
+// ===== CLOCK =====
+function updateClock(){
+  const el = document.getElementById('live-clock');
+  if(el) el.textContent = new Date().toLocaleString('th-TH',{
+    year:'numeric', month:'long', day:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== NAV =====
+function showPage(page, btn){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  btn.classList.add('active');
+  if(page === 'history') renderHistory();
+}
+
+function tryShowHistory(btn){
+  histNavBtn = btn;
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-err').style.display = 'none';
+  document.getElementById('pw-modal').classList.add('show');
+  setTimeout(() => document.getElementById('pw-input').focus(), 100);
+}
+
+function checkPW(){
+  const val = document.getElementById('pw-input').value;
+  if(val === PASSWORD){
+    closePWModal();
+    showPage('history', histNavBtn);
+  } else {
+    document.getElementById('pw-err').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function closePWModal(){
+  document.getElementById('pw-modal').classList.remove('show');
+}
+
+// ===== CIP TYPE =====
+function setCIPType(type, btn){
+  cipType = type;
+  photos = {};
+  document.querySelectorAll('.cip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildPhotoSlots(type);
+  document.getElementById('photo-section').style.display = 'block';
+  document.getElementById('photo-section-title').textContent =
+    type === 'AL' ? 'ถ่ายรูปบันทึก CIP — AL (Alkali)'
+    : type === 'AC' ? 'ถ่ายรูปบันทึก CIP — AC (Acid)'
+    : 'ถ่ายรูปบันทึก CIP — AL + AC';
+  checkReady();
+}
+
+// ===== BUILD PHOTO SLOTS =====
+function buildPhotoSlots(type){
+  const container = document.getElementById('photo-slots');
+  container.innerHTML = '';
+  const slots = type === 'AL'
+    ? [
+        {id:'step6',  label:'Step 6 — Alkali', badge:'al', icon:'🔵', desc:'ถ่ายหน้าจอแสดงค่า Step 6 (Alkali)'},
+        {id:'sc',     label:'Sampling Cock',   badge:'sc', icon:'🧴', desc:'ถ่ายให้เห็นการทำความสะอาด Sampling cock'}
+      ]
+    : type === 'AC'
+    ? [
+        {id:'step16', label:'Step 16 — Acid',  badge:'ac', icon:'🟡', desc:'ถ่ายหน้าจอแสดงค่า Step 16 (Acid)'},
+        {id:'sc',     label:'Sampling Cock',   badge:'sc', icon:'🧴', desc:'ถ่ายให้เห็นการทำความสะอาด Sampling cock'}
+      ]
+    : [
+        {id:'step6',  label:'Step 6 — Alkali', badge:'al', icon:'🔵', desc:'ถ่ายหน้าจอแสดงค่า Step 6 (Alkali)'},
+        {id:'step16', label:'Step 16 — Acid',  badge:'ac', icon:'🟡', desc:'ถ่ายหน้าจอแสดงค่า Step 16 (Acid)'},
+        {id:'sc',     label:'Sampling Cock',   badge:'sc', icon:'🧴', desc:'ถ่ายให้เห็นการทำความสะอาด Sampling cock'}
+      ];
+
+  slots.forEach(slot => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="photo-slot-label">
+        <span class="step-badge ${slot.badge}">${slot.icon} ${slot.label}</span>
+      </div>
+      <div class="photo-area" id="pa-${slot.id}" onclick="triggerPhoto('${slot.id}')">
+        <div class="photo-placeholder">
+          <div class="ph-icon">📷</div>
+          <div class="ph-title">แตะเพื่อถ่ายรูป</div>
+          <div class="ph-sub">${slot.desc}</div>
+        </div>
+        <img id="img-${slot.id}" style="display:none">
+        <div class="photo-overlay" id="po-${slot.id}"></div>
+        <button class="retake-btn" onclick="event.stopPropagation();triggerPhoto('${slot.id}')">🔄 ถ่ายใหม่</button>
+      </div>
+      <input type="file" id="fi-${slot.id}" accept="image/*" capture="environment"
+        onchange="handlePhoto(event,'${slot.id}')">
+      <div class="done-badge" id="db-${slot.id}">✅ บันทึกรูปแล้ว</div>
+    `;
+    container.appendChild(wrap);
+  });
+}
+
+function triggerPhoto(slotId){
+  document.getElementById('fi-' + slotId).click();
+}
+
+function handlePhoto(event, slotId){
+  const file = event.target.files[0];
+  if(!file) return;
+  const now = new Date();
+  const tsStr = now.toLocaleString('th-TH',{
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const area = document.getElementById('pa-' + slotId);
+    const img = document.getElementById('img-' + slotId);
+    img.src = dataUrl;
+    img.style.display = 'block';
+    area.classList.add('has-photo');
+    area.querySelector('.photo-placeholder').style.display = 'none';
+    document.getElementById('po-' + slotId).textContent = '📸 ' + tsStr;
+    const db = document.getElementById('db-' + slotId);
+    db.classList.add('show');
+    photos[slotId] = {dataUrl, ts: now.toISOString(), tsStr};
+    checkReady();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== CHECK READY =====
+function checkReady(){
+  if(!cipType){ document.getElementById('submit-btn').disabled = true; return; }
+  const required = cipType === 'AL' ? ['step6','sc'] : cipType === 'AC' ? ['step16','sc'] : ['step6','step16','sc'];
+  const allDone = required.every(id => photos[id]);
+  document.getElementById('submit-btn').disabled = !allDone;
+}
+
+// ===== SUBMIT =====
+function submitForm(){
+  const now = new Date();
+  const flavor = document.getElementById('flavor').value.trim() || '(ไม่ระบุ)';
+
+  const photosCopy = {};
+  Object.keys(photos).forEach(k => { photosCopy[k] = {...photos[k]}; });
+
+  records.unshift({
+    id: Date.now(),
+    submitTs: now.toISOString(),
+    submitTsStr: now.toLocaleString('th-TH',{
+      year:'numeric', month:'long', day:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    }),
+    cipType,
+    flavor,
+    photos: photosCopy
+  });
+
+  saveRecords();
+
+  showToast('✅ บันทึก CIP สำเร็จ — ' + now.toLocaleTimeString('th-TH'));
+
+  // Reset
+  cipType = null;
+  photos = {};
+  document.querySelectorAll('.cip-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('photo-section').style.display = 'none';
+  document.getElementById('photo-slots').innerHTML = '';
+  document.getElementById('flavor').value = '';
+  document.getElementById('submit-btn').disabled = true;
+
+  // Scroll to top
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ===== SELECTION STATE =====
+let selectedIds = new Set();
+let pendingDeleteIds = null; // null = single from button, else array
+
+// ===== HISTORY =====
+function renderHistory(){
+  const list = document.getElementById('hist-list');
+  const noData = document.getElementById('hist-no-data');
+  const sub = document.getElementById('hist-subtitle');
+  const controls = document.getElementById('hist-controls');
+
+  selectedIds.clear();
+  updateBulkBar();
+
+  if(!records.length){
+    noData.style.display = 'block';
+    list.innerHTML = '';
+    controls.style.display = 'none';
+    sub.textContent = 'ไม่มีข้อมูล';
+    return;
+  }
+  noData.style.display = 'none';
+  controls.style.display = 'block';
+  sub.textContent = `${records.length} รายการ`;
+
+  list.innerHTML = records.map((r) => {
+    const typeBadge = r.cipType === 'AL'
+      ? '<span class="type-badge al">🔵 AL</span>'
+      : r.cipType === 'AC'
+      ? '<span class="type-badge" style="background:var(--ac-bg);color:var(--ac);border:1px solid var(--ac-b)">🟡 AC</span>'
+      : '<span class="type-badge alac">🟢 AL+AC</span>';
+
+    const photoOrder = ['step6','step16','sc'];
+    const photoKeys = photoOrder.filter(k => r.photos && r.photos[k]);
+    const photosHTML = photoKeys.map(k => {
+      const p = r.photos[k];
+      const lbl = k === 'step6' ? '🔵 Step 6' : k === 'step16' ? '🟡 Step 16' : '🧴 Sampling Cock';
+      return `<div class="rec-photo-item" onclick="openLightbox('${r.id}','${k}')">
+        <img src="${p.dataUrl}" loading="lazy">
+        <div class="rec-photo-lbl">${lbl}<br><span style="font-size:9px;opacity:.7">${p.tsStr||''}</span></div>
+      </div>`;
+    }).join('');
+
+    const gridClass = photoKeys.length >= 3 ? 'rec-photos rec-card-3' : 'rec-photos';
+
+    return `<div class="rec-card" id="card-${r.id}">
+      <div class="rec-card-hd">
+        <div class="rec-card-hd-left">
+          <input type="checkbox" class="rec-checkbox" data-id="${r.id}"
+            onchange="toggleSelect(${r.id}, this.checked)">
+          <div>
+            <div class="rec-ts">📅 ${r.submitTsStr || r.submitTs}</div>
+            <div class="rec-flavor">ก่อน CIP: ${r.flavor}</div>
+          </div>
+        </div>
+        <div class="rec-card-hd-right">
+          ${typeBadge}
+          <button class="del-one-btn" onclick="confirmDeleteOne(${r.id})">🗑</button>
+        </div>
+      </div>
+      <div class="${gridClass}">${photosHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== SELECTION =====
+function toggleSelect(id, checked){
+  if(checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  const card = document.getElementById('card-' + id);
+  if(card) card.classList.toggle('selected', checked);
+  updateBulkBar();
+  // Sync select-all checkbox
+  const allCbs = document.querySelectorAll('.rec-checkbox');
+  const allChecked = [...allCbs].every(cb => cb.checked);
+  const selAllCb = document.getElementById('sel-all-cb');
+  if(selAllCb) selAllCb.checked = allChecked;
+}
+
+function toggleSelectAll(checked){
+  document.querySelectorAll('.rec-checkbox').forEach(cb => {
+    cb.checked = checked;
+    const id = parseInt(cb.dataset.id);
+    if(checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    const card = document.getElementById('card-' + id);
+    if(card) card.classList.toggle('selected', checked);
+  });
+  updateBulkBar();
+}
+
+function clearSelection(){
+  selectedIds.clear();
+  document.querySelectorAll('.rec-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.rec-card').forEach(c => c.classList.remove('selected'));
+  const selAllCb = document.getElementById('sel-all-cb');
+  if(selAllCb) selAllCb.checked = false;
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById('bulk-bar');
+  const info = document.getElementById('bulk-bar-info');
+  if(selectedIds.size > 0){
+    bar.classList.remove('hidden');
+    info.textContent = `เลือก ${selectedIds.size} รายการ`;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+// ===== DELETE =====
+function confirmDeleteOne(id){
+  pendingDeleteIds = [id];
+  document.getElementById('confirm-sub').textContent = 'ต้องการลบรายการนี้ใช่หรือไม่? การลบไม่สามารถย้อนกลับได้';
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function confirmBulkDelete(){
+  if(!selectedIds.size) return;
+  pendingDeleteIds = [...selectedIds];
+  document.getElementById('confirm-sub').textContent = `ต้องการลบ ${pendingDeleteIds.length} รายการที่เลือกใช่หรือไม่? การลบไม่สามารถย้อนกลับได้`;
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function closeConfirmModal(){
+  document.getElementById('confirm-modal').classList.remove('show');
+  pendingDeleteIds = null;
+}
+
+function doDelete(){
+  if(!pendingDeleteIds) return;
+  const delSet = new Set(pendingDeleteIds);
+  records = records.filter(r => !delSet.has(r.id));
+  saveRecords();
+  closeConfirmModal();
+  selectedIds.clear();
+  showToast(`🗑 ลบ ${delSet.size} รายการแล้ว`);
+  renderHistory();
+}
+
+// ===== LIGHTBOX =====
+function openLightbox(recordId, photoKey){
+  const r = records.find(x => x.id == recordId);
+  if(!r || !r.photos || !r.photos[photoKey]) return;
+  const p = r.photos[photoKey];
+  const lbl = photoKey === 'step6' ? 'Step 6 (Alkali)' : photoKey === 'step16' ? 'Step 16 (Acid)' : 'Sampling Cock';
+  document.getElementById('lightbox-img').src = p.dataUrl;
+  document.getElementById('lightbox-lbl').textContent = `${lbl} · ${p.tsStr || ''}`;
+  document.getElementById('lightbox').classList.add('show');
+}
+
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('show');
+  document.getElementById('lightbox-img').src = '';
+}
+
+// ===== EXPORT EXCEL =====
+function exportExcel(){
+  if(!records.length){ alert('ไม่มีข้อมูลสำหรับ Export'); return; }
+  const rows = records.map((r, i) => ({
+    'ลำดับ': i + 1,
+    'วันที่/เวลาบันทึก': r.submitTsStr || r.submitTs,
+    'ประเภท CIP': r.cipType === 'AL' ? 'AL (Alkali only)' : r.cipType === 'AC' ? 'AC (Acid only)' : 'AL+AC (Alkali+Acid)',
+    'ผลิตภัณฑ์ก่อน CIP': r.flavor,
+    'มีรูป Step 6': r.photos?.step6 ? 'มี' : '-',
+    'เวลาถ่าย Step 6': r.photos?.step6?.tsStr || '-',
+    'มีรูป Step 16': r.photos?.step16 ? 'มี' : '-',
+    'เวลาถ่าย Step 16': r.photos?.step16?.tsStr || '-',
+    'มีรูป Sampling Cock': r.photos?.sc ? 'มี' : '-',
+    'เวลาถ่าย Sampling Cock': r.photos?.sc?.tsStr || '-',
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [8,22,12,24,14,22,14,22,18,22].map(w => ({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, 'CIP Records', ws);
+  XLSX.writeFile(wb, `CIP_Records_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ===== TOAST =====
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
